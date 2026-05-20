@@ -32,8 +32,8 @@ import (
 //	    DockerImage: image,
 //	})
 type DockerImage struct {
-	instructions []string
-	contexts     []DockerImageContext
+	Instructions []string
+	Context      []DockerImageContext
 }
 
 // DockerImageContext represents a local file or directory to include in the build context.
@@ -57,7 +57,7 @@ type DockerImageContext struct {
 //	image := daytona.Base("node:18-alpine")
 func Base(baseImage string) *DockerImage {
 	return &DockerImage{
-		instructions: []string{fmt.Sprintf("FROM %s", baseImage)},
+		Instructions: []string{fmt.Sprintf("FROM %s", baseImage)},
 	}
 }
 
@@ -94,7 +94,7 @@ func DebianSlim(pythonVersion *string) *DockerImage {
 //	image := daytona.FromDockerfile(dockerfile)
 func FromDockerfile(dockerfile string) *DockerImage {
 	return &DockerImage{
-		instructions: strings.Split(dockerfile, "\n"),
+		Instructions: strings.Split(dockerfile, "\n"),
 	}
 }
 
@@ -149,7 +149,7 @@ func (img *DockerImage) PipInstall(packages []string, opts ...func(*options.PipI
 
 	cmd = append(cmd, packages...)
 
-	img.instructions = append(img.instructions, fmt.Sprintf("RUN %s", strings.Join(cmd, " ")))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("RUN %s", strings.Join(cmd, " ")))
 	return img
 }
 
@@ -167,7 +167,7 @@ func (img *DockerImage) AptGet(packages []string) *DockerImage {
 	}
 
 	cmd := fmt.Sprintf("apt-get update && apt-get install -y %s && rm -rf /var/lib/apt/lists/*", strings.Join(packages, " "))
-	img.instructions = append(img.instructions, fmt.Sprintf("RUN %s", cmd))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("RUN %s", cmd))
 	return img
 }
 
@@ -179,7 +179,7 @@ func (img *DockerImage) AptGet(packages []string) *DockerImage {
 //	    Run("mkdir -p /app/data").
 //	    Run("chmod 755 /app")
 func (img *DockerImage) Run(command string) *DockerImage {
-	img.instructions = append(img.instructions, fmt.Sprintf("RUN %s", command))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("RUN %s", command))
 	return img
 }
 
@@ -191,7 +191,7 @@ func (img *DockerImage) Run(command string) *DockerImage {
 //	    Env("PYTHONUNBUFFERED", "1").
 //	    Env("APP_ENV", "production")
 func (img *DockerImage) Env(key, value string) *DockerImage {
-	img.instructions = append(img.instructions, fmt.Sprintf("ENV %s=%s", key, value))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("ENV %s=%s", key, value))
 	return img
 }
 
@@ -203,7 +203,7 @@ func (img *DockerImage) Env(key, value string) *DockerImage {
 //	    Workdir("/app").
 //	    Run("pip install -r requirements.txt")
 func (img *DockerImage) Workdir(path string) *DockerImage {
-	img.instructions = append(img.instructions, fmt.Sprintf("WORKDIR %s", path))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("WORKDIR %s", path))
 	return img
 }
 
@@ -217,7 +217,7 @@ func (img *DockerImage) Workdir(path string) *DockerImage {
 //	    Entrypoint([]string{"python", "-m", "myapp"})
 func (img *DockerImage) Entrypoint(cmd []string) *DockerImage {
 	jsonCmd, _ := json.Marshal(cmd)
-	img.instructions = append(img.instructions, fmt.Sprintf("ENTRYPOINT %s", jsonCmd))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("ENTRYPOINT %s", jsonCmd))
 	return img
 }
 
@@ -231,7 +231,7 @@ func (img *DockerImage) Entrypoint(cmd []string) *DockerImage {
 //	    Cmd([]string{"python", "app.py"})
 func (img *DockerImage) Cmd(cmd []string) *DockerImage {
 	cmdStr := strings.Join(cmd, "\", \"")
-	img.instructions = append(img.instructions, fmt.Sprintf("CMD [\"%s\"]", cmdStr))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("CMD [\"%s\"]", cmdStr))
 	return img
 }
 
@@ -244,7 +244,7 @@ func (img *DockerImage) Cmd(cmd []string) *DockerImage {
 //	    User("appuser").
 //	    Workdir("/home/appuser")
 func (img *DockerImage) User(username string) *DockerImage {
-	img.instructions = append(img.instructions, fmt.Sprintf("USER %s", username))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("USER %s", username))
 	return img
 }
 
@@ -258,7 +258,7 @@ func (img *DockerImage) User(username string) *DockerImage {
 //	image := daytona.Base("python:3.11").
 //	    Copy("requirements.txt", "/app/requirements.txt")
 func (img *DockerImage) Copy(source, destination string) *DockerImage {
-	img.instructions = append(img.instructions, fmt.Sprintf("COPY %s %s", source, destination))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("COPY %s %s", source, destination))
 	return img
 }
 
@@ -272,7 +272,7 @@ func (img *DockerImage) Copy(source, destination string) *DockerImage {
 //	image := daytona.Base("ubuntu:22.04").
 //	    Add("https://example.com/app.tar.gz", "/app/")
 func (img *DockerImage) Add(source, destination string) *DockerImage {
-	img.instructions = append(img.instructions, fmt.Sprintf("ADD %s %s", source, destination))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("ADD %s %s", source, destination))
 	return img
 }
 
@@ -289,7 +289,7 @@ func (img *DockerImage) Expose(ports []int) *DockerImage {
 	for i, port := range ports {
 		portStrs[i] = fmt.Sprintf("%d", port)
 	}
-	img.instructions = append(img.instructions, fmt.Sprintf("EXPOSE %s", strings.Join(portStrs, " ")))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("EXPOSE %s", strings.Join(portStrs, " ")))
 	return img
 }
 
@@ -301,7 +301,7 @@ func (img *DockerImage) Expose(ports []int) *DockerImage {
 //	    Label("maintainer", "team@example.com").
 //	    Label("version", "1.0.0")
 func (img *DockerImage) Label(key, value string) *DockerImage {
-	img.instructions = append(img.instructions, fmt.Sprintf("LABEL %s=\"%s\"", key, value))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("LABEL %s=\"%s\"", key, value))
 	return img
 }
 
@@ -313,7 +313,7 @@ func (img *DockerImage) Label(key, value string) *DockerImage {
 //	    Volume([]string{"/data", "/logs"})
 func (img *DockerImage) Volume(paths []string) *DockerImage {
 	pathsStr := strings.Join(paths, " ")
-	img.instructions = append(img.instructions, fmt.Sprintf("VOLUME [%s]", pathsStr))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("VOLUME [%s]", pathsStr))
 	return img
 }
 
@@ -327,11 +327,11 @@ func (img *DockerImage) Volume(paths []string) *DockerImage {
 //	    AddLocalFile("./requirements.txt", "/app/requirements.txt").
 //	    Run("pip install -r /app/requirements.txt")
 func (img *DockerImage) AddLocalFile(localPath, remotePath string) *DockerImage {
-	img.contexts = append(img.contexts, DockerImageContext{
+	img.Context = append(img.Context, DockerImageContext{
 		SourcePath:  localPath,
 		ArchivePath: localPath,
 	})
-	img.instructions = append(img.instructions, fmt.Sprintf("COPY %s %s", localPath, remotePath))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("COPY %s %s", localPath, remotePath))
 	return img
 }
 
@@ -344,11 +344,11 @@ func (img *DockerImage) AddLocalFile(localPath, remotePath string) *DockerImage 
 //	image := daytona.Base("python:3.11").
 //	    AddLocalDir("./src", "/app/src")
 func (img *DockerImage) AddLocalDir(localPath, remotePath string) *DockerImage {
-	img.contexts = append(img.contexts, DockerImageContext{
+	img.Context = append(img.Context, DockerImageContext{
 		SourcePath:  localPath,
 		ArchivePath: localPath,
 	})
-	img.instructions = append(img.instructions, fmt.Sprintf("COPY %s %s", localPath, remotePath))
+	img.Instructions = append(img.Instructions, fmt.Sprintf("COPY %s %s", localPath, remotePath))
 	return img
 }
 
@@ -364,12 +364,12 @@ func (img *DockerImage) AddLocalDir(localPath, remotePath string) *DockerImage {
 //	// FROM python:3.11
 //	// RUN pip install numpy
 func (img *DockerImage) Dockerfile() string {
-	return strings.Join(img.instructions, "\n")
+	return strings.Join(img.Instructions, "\n")
 }
 
 // Contexts returns the build contexts for local files/directories.
 //
 // This is called internally when creating snapshots to upload local files.
 func (img *DockerImage) Contexts() []DockerImageContext {
-	return img.contexts
+	return img.Context
 }
